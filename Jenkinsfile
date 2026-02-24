@@ -1,56 +1,23 @@
 pipeline {
     agent any
-
-    environment {
-        MVN = 'mvn'
-    }
-
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '30'))
-        timestamps()
-    }
-
+    tools { maven 'Maven 3.9' }
     stages {
         stage('Checkout') {
-            steps {
-                checkout scm
-            }
+            steps { checkout scm }
         }
-
-        stage('Build') {
-            steps {
-                sh "${MVN} -B clean package"
-            }
+        stage('Build & Test') {
+            steps { bat "mvn -B clean package" }
         }
-
-        stage('Install') {
-            steps {
-                sh 'mvn clean install'
-            }
-        }
-
-        stage('Archive') {
-            steps {
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            }
-        }
-
         stage('Publish Test Results') {
-            steps {
-                junit 'target/surefire-reports/*.xml'
-            }
+            steps { junit "target\\surefire-reports\\*.xml" }
+        }
+        stage('Archive Artifacts') {
+            steps { archiveArtifacts artifacts: 'target\\*.jar', fingerprint: true }
         }
     }
-
     post {
-        always {
-            cleanWs()
-        }
-        success {
-            echo 'Build succeeded.'
-        }
-        failure {
-            echo 'Build failed.'
-        }
+        success { echo 'Build succeeded ✅' }
+        failure { echo 'Build failed ❌' }
+        always { cleanWs() }
     }
 }
