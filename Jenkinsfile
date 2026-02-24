@@ -39,6 +39,13 @@ pipeline {
                 junit 'target/surefire-reports/*.xml'
             }
         }
+       
+        stage('Build') {
+            steps {
+                sh 'mvn clean install'
+            }
+        
+    }
     }
 
     post {
